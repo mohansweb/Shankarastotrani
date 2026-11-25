@@ -735,7 +735,7 @@ def main():
 <body>
 {header_html(prefix="", active="home")}
   <section class="hero">
-    <div class="container hero-grid">
+    <div class="container">
       <div>
         <h1>Philosophical Hymns of Adi Shankara</h1>
         <p>Explore 20 timeless Advaita Vedanta hymns and treatises—complete with Sanskrit Devanagari text, IAST transliteration, split-sandhi prose order, word-for-word meanings, commentary, and MP3 chanting.</p>
@@ -743,9 +743,6 @@ def main():
           <a class="btn-primary" href="hymns/about-adi-shankaras-philosophical-hymns.html">Start with the Introduction</a>
           <a class="btn-ghost" href="toc.html">Browse Complete Index</a>
         </div>
-      </div>
-      <div class="hero-image-wrap">
-        <img src="assets/images/blog-header.jpeg" alt="Adi Shankaracharya philosophical hymns banner">
       </div>
     </div>
   </section>
