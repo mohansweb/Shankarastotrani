@@ -440,6 +440,12 @@ def slugify_filename(name: str) -> str:
     return f"{safe}{ext.lower()}"
 
 
+def slugify_m4a(name: str) -> str:
+    stem, _ = os.path.splitext(name)
+    safe = re.sub(r"[^a-zA-Z0-9]+", "-", stem).strip("-").lower()
+    return f"{safe}.m4a"
+
+
 def head_html(title: str, description: str, canonical_path: str, prefix: str = "", og_image: str = "") -> str:
     full_title = f"{title} | {SITE_TITLE}" if title != SITE_TITLE else f"{SITE_TITLE} — {SITE_SUBTITLE}"
     canonical = f"{SITE_URL}/{canonical_path}".rstrip("/") + ("/" if canonical_path == "" else "")
@@ -535,13 +541,17 @@ def main():
             shutil.copy2(src, ASSETS_IMG_DIR / clean_name)
             img_map[src.name] = clean_name
 
-    # Copy all audio files with clean filenames
+    # Map audio files: prefer enhanced .m4a already in assets/audio/, else copy raw .mp3
     aud_map = {}
     for src in (RAW_DIR / "audio").iterdir():
         if src.is_file():
-            clean_name = slugify_filename(src.name)
-            shutil.copy2(src, ASSETS_AUD_DIR / clean_name)
-            aud_map[src.name] = clean_name
+            m4a_name = slugify_m4a(src.name)
+            if (ASSETS_AUD_DIR / m4a_name).exists():
+                aud_map[src.name] = m4a_name
+            else:
+                clean_name = slugify_filename(src.name)
+                shutil.copy2(src, ASSETS_AUD_DIR / clean_name)
+                aud_map[src.name] = clean_name
 
     # Parse Blogger feed.atom
     tree = ET.parse(RAW_DIR / "feed.atom")
@@ -605,14 +615,15 @@ def main():
 
         audio_block = ""
         if art["aud_file"]:
+            aud_mime = "audio/mp4" if art["aud_file"].endswith(".m4a") else "audio/mpeg"
             audio_block = f"""
       <section class="audio-card" aria-label="Chanting audio player">
         <div class="audio-card-head">
-          <span class="audio-card-title">Chanting Audio (MP3)</span>
-          <a class="audio-download" href="../assets/audio/{art['aud_file']}" download>Download MP3</a>
+          <span class="audio-card-title">Chanting Audio</span>
+          <a class="audio-download" href="../assets/audio/{art['aud_file']}" download>Download Audio</a>
         </div>
         <audio controls preload="metadata">
-          <source src="../assets/audio/{art['aud_file']}" type="audio/mpeg">
+          <source src="../assets/audio/{art['aud_file']}" type="{aud_mime}">
           Your browser does not support the audio element.
         </audio>
       </section>"""
@@ -640,10 +651,11 @@ def main():
         # Append an accessible chanting section at #section-4 if audio exists and cleaned_html has #section-4
         body_html = art["cleaned_html"]
         if art["aud_file"] and 'id="section-4"' in body_html:
+            aud_mime = "audio/mp4" if art["aud_file"].endswith(".m4a") else "audio/mpeg"
             body_html = re.sub(
                 r'(<h2 id="section-4">.*?</h2>)',
-                rf'\1\n<p>Listen to the traditional chanting below or <a href="../assets/audio/{art["aud_file"]}" download>download the MP3</a>.</p>'
-                rf'\n<p><audio controls preload="metadata" style="width:100%"><source src="../assets/audio/{art["aud_file"]}" type="audio/mpeg"></audio></p>',
+                rf'\1\n<p>Listen to the traditional chanting below or <a href="../assets/audio/{art["aud_file"]}" download>download the audio</a>.</p>'
+                rf'\n<p><audio controls preload="metadata" style="width:100%"><source src="../assets/audio/{art["aud_file"]}" type="{aud_mime}"></audio></p>',
                 body_html,
                 count=1,
                 flags=re.I | re.S,
