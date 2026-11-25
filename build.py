@@ -184,7 +184,7 @@ POST_META = [
         "title": "Tattvopadesha",
         "subtitle": "Pointers Towards Truth",
         "category": "Prakarana Granthas",
-        "image": "Blog Header.jpeg",
+        "image": "Tattvopadesha.jpg",
         "audio": "Tattva Upadesha.mp3",
         "order": 15,
     },
